@@ -1,49 +1,46 @@
 #![no_main]
 #![no_std]
 
-// set the panic handler
 extern crate panic_semihosting;
 
-use core::sync::atomic::{AtomicBool, Ordering};
-use cortex_m::peripheral::syst::SystClkSource;
-use cortex_m_rt::{entry, exception};
-use stm32f1xx_hal::prelude::*;
+use stm32f1xx_hal as hal;
+use hal::prelude::*;
+use rtic::app;
+// use cortex_m_semihosting::hprintln;
+use hal::{
+    time::MegaHertz,
+};
 
-static TOGGLE_LED: AtomicBool = AtomicBool::new(false);
+const SYSCLK_FREQ: MegaHertz = MegaHertz(72);
+const PCLK1_FREQ: MegaHertz = MegaHertz(36);
 
-#[entry]
-fn main() -> ! {
-    let mut core = cortex_m::Peripherals::take().unwrap();
-    let device = stm32f1xx_hal::stm32::Peripherals::take().unwrap();
-    let mut rcc = device.RCC.constrain();
-    let mut flash = device.FLASH.constrain();
+#[app(device = stm32f1xx_hal::pac, peripherals = true, monotonic = rtic::cyccnt::CYCCNT)]
+const APP: () = {
+    struct Resources {
+        foo: bool,
+    }
+    #[init]
+    fn init(cx: init::Context) -> init::LateResources {
+        // Enable the monotonic timer
+        let mut _core = cx.core;
+        _core.DWT.enable_cycle_counter();
 
-    let clocks = rcc
-        .cfgr
-        .use_hse(8.mhz())
-        .sysclk(16.mhz())
-        .freeze(&mut flash.acr);
+        // Set up peripherals
+        let mut rcc = cx.device.RCC.constrain();
+        let mut flash = cx.device.FLASH.constrain();
+        let mut mapr = cx.device.AFIO.constrain(&mut rcc.apb2).mapr;
+        let clocks = rcc
+            .cfgr
+            .sysclk(SYSCLK_FREQ)
+            .pclk1(PCLK1_FREQ)
+            .freeze(&mut flash.acr);
 
-    // configure the user led
-    let mut gpioc = device.GPIOC.split(&mut rcc.apb2);
-    let mut led = gpioc.pc13.into_push_pull_output(&mut gpioc.crh);
-
-    // configure SysTick to generate an exception every second
-    core.SYST.set_clock_source(SystClkSource::Core);
-    core.SYST.set_reload(clocks.sysclk().0);
-    core.SYST.enable_counter();
-    core.SYST.enable_interrupt();
-
-    loop {
-        // sleep
-        cortex_m::asm::wfi();
-        if TOGGLE_LED.swap(false, Ordering::AcqRel) {
-            led.toggle().unwrap();
+        init::LateResources {
+            foo: true,
         }
     }
-}
 
-#[exception]
-fn SysTick() {
-    TOGGLE_LED.store(true, Ordering::Release);
-}
+    extern "C" {
+        fn EXTI0();
+    }
+};

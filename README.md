@@ -1,5 +1,7 @@
 # blue-pill-quickstart [![Build status](https://travis-ci.org/TeXitoi/blue-pill-quickstart.svg?branch=master)](https://travis-ci.org/TeXitoi/blue-pill-quickstart)
 
+**Modified to be a quickstart for RTIC projects!**
+
 Quickstart a Rust project for the [blue pill](https://wiki.stm32duino.com/index.php?title=Blue_Pill), or any similar STM32F103xx board.
 
 ## Quickstart a new project

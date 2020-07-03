@@ -11,8 +11,8 @@ use hal::{
     time::MegaHertz,
 };
 
-const SYSCLK_FREQ: MegaHertz = MegaHertz(72);
-const PCLK1_FREQ: MegaHertz = MegaHertz(36);
+const SYSCLK_FREQ: MegaHertz = MegaHertz(48);
+const PCLK1_FREQ: MegaHertz = MegaHertz(24);
 
 #[app(device = stm32f1xx_hal::pac, peripherals = true, monotonic = rtic::cyccnt::CYCCNT)]
 const APP: () = {

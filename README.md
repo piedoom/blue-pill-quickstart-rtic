@@ -129,6 +129,15 @@ Info : Previous state query failed, trying to reconnect
 To workaround this, press the reset button on the blue pill board whilst starting openocd.  If the software that you've flashed to the STM32F103xx is putting it into the low power mode (e.g. by using the `wfi` instruction), then you might want to disable this (e.g. by busy-looping instead) when building the code in development mode instead of release mode.
 
 
+### Cloned chips (Error 0x1ba01477)
+If you are having difficulty with OpenOCD, check that you have a real ST chip. If not, you may have a clone. Try using this as your `openocd.cfg`:
+
+```cfg
+source [find interface/stlink-v2.cfg]
+# For clone cs32f1x chips
+source [find ./cs32f1x.cfg] 
+```
+
 ## Sources
 
 This quickstart is inspired by the [cortex-m-quickstart](https://github.com/japaric/cortex-m-quickstart) and [Discovery](https://rust-embedded.github.io/discovery/). I recommend reading them.

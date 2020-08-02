@@ -1,12 +1,6 @@
-[target.thumbv7m-none-eabi]
-
-# uncomment ONE of these three option to make `cargo run` start a GDB session
-# which option to pick depends on your system
-runner = "arm-none-eabi-gdb -q -x openocd.gdb"
-# runner = "gdb-multiarch -q -x openocd.gdb"
-# runner = "gdb -q -x openocd.gdb"
-
-rustflags = ["-C", "link-arg=-Tlink.x"]
-
 [build]
+# Always compile for the instruction set of the STM32F1
 target = "thumbv7m-none-eabi"
+
+# use the Tlink.x scrip from the cortex-m-rt crate
+rustflags = [ "-C", "link-arg=-Tlink.x"]

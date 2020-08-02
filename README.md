@@ -1,77 +1,43 @@
-# blue-pill-quickstart [![Build status](https://travis-ci.org/TeXitoi/blue-pill-quickstart.svg?branch=master)](https://travis-ci.org/TeXitoi/blue-pill-quickstart)
+# blue-pill-rtic-quickstart
 
-**Modified to be a quickstart for RTIC projects!**
+**A quickstart for RTIC projects**
 
-Quickstart a Rust project for the [blue pill](https://wiki.stm32duino.com/index.php?title=Blue_Pill), or any similar STM32F103xx board.
+Quickstart a Rust project for the [STM32F103 (blue pill)](https://wiki.stm32duino.com/index.php?title=Blue_Pill).
 
-## Quickstart a new project
-
-This section assumes your computer is ready to hack on a blue pill.
-
-Get and cleanup:
-
-```shell
-git clone https://github.com/TeXitoi/blue-pill-quickstart.git my-new-project
-cd my-new-project
-rm -fr .git LICENSE README.md st-link-v2-blue-pill.jpg
-git init
-```
-
-Edit `Cargo.toml` for author and project name, and you're ready to go.
+## Features
+- Ready to use RTIC (formerly known as RTFM)
+- Uses probe.rs toolchain with cargo flash and embed
+- Uses RTT for passing messages to the host
+- Works on both STM32F103 and CS32F103 boards
 
 ## Setting up your machine
 
-First, you need hardware. Buy a [blue pill](https://www.aliexpress.com/w/wholesale-stm32f103c8t6.html?&SortType=total_tranpro_desc) and an [ST-Link V2](https://www.aliexpress.com/w/wholesale-st-link-v2.html?SortType=total_tranpro_desc). You also need a computer, the commands below are for a Debian based distribution. It should be easy to adapt the instructions to other operating systems (Linux, MacOSX, Windows).
+### Hardware
+- [STM32F103C8 (Blue pill)](https://www.aliexpress.com/w/wholesale-stm32f103c8t6.html?&SortType=total_tranpro_desc) 
+- [ST-Link V2](https://www.aliexpress.com/w/wholesale-st-link-v2.html?SortType=total_tranpro_desc) 
+- A Windows or *nix system
 
-Install rust and gdb support to compile and debug code for the Cortex-M3 which is the basis of the STM32F103xx MCU:
+### Software
+- [cargo embed](https://probe.rs/guide/1_tools/cargo-embed/) (and/Or [cargo flash](https://probe.rs/guide/1_tools/cargo-flash/))
 
-```shell
-curl https://sh.rustup.rs -sSf | sh
-rustup target add thumbv7m-none-eabi
-sudo apt-get install gdb-arm-none-eabi openocd
-```
+## Setting up ST-Link
 
-If your distribution doesn't offer `gdb-arm-none-eabi`, you can try `gdb-multiarch` (on Ubuntu 18.04 for example) or `gdb`. In these cases, you'll have to update `.cargo/config` accordingly.
+First connect your ST-Link to your microcontroller, then connect the ST-Link to your computer. See the printed header pins and match them with your ST-Link pins.
 
-Clone the repository:
-
-```shell
-git clone https://github.com/TeXitoi/blue-pill-quickstart.git
-cd blue-pill-quickstart
-```
-
-First connect your ST-Link to your blue pill, then connect the ST-Link to your computer.
-
-![ST-Link V2 to blue pill](st-link-v2-blue-pill.jpg)
-
-Launch openocd:
-
-```shell
-openocd
-```
-
-You should see terminal output like this:
+When you have connected, open a terminal at your project root. To start the software and begin showing output, type
 
 ```
-Open On-Chip Debugger 0.10.0
-[...]
-Info : stm32f1x.cpu: hardware has 6 breakpoints, 4 watchpoints
-```
- 
-Open a new terminal, compile and flash
-
-```shell
-cd blue-pill-quickstart
-cargo run
+cargo embed --release
 ```
 
-Now, the program is flashed, and you are on a gdb prompt. Type `c` (for continue) you can see the on board LED blinking.
+This will compile and flash your microcontroller, and show output from `rprintln!` macros.
+
 
 ## Trouble Shooting
 
 ### Wrong connection of the ST-Link
 
-The pin mapping which is shown on the outer shell of your ST-Link might not be correct. If `openocd` returns `unknown code 0x9`, check the pin mapping by removing the ST-Link's shell, and check if the pin mapping printed on its PCB matches the mapping printed on the outer case.  If they differ, then use the mapping printed on the PCB.
+The pin mapping which is shown on the outer shell of your ST-Link might not be correct. Check the pin mapping by removing the ST-Link's shell, and check if the pin mapping printed on its PCB matches the mapping printed on the outer case.  If they differ, then use the mapping printed on the PCB.
 
 If you're unable to remove the shell or the PCB is not readable, you can try one of these pin mappings which are known to exist:
 
@@ -91,53 +57,23 @@ If you're unable to remove the shell or the PCB is not readable, you can try one
 | 7 | 3.3V | 8 | 3.3V  |
 | 9 | 5.0V |10 | 5.0V  |
 
-### Flash protected
+### JtagNoDeviceConnected
 
-When flashing your blue pill for the first time, flashing may fail with the following messages in the openocd console:
+If you receive an error when flashing that contains a message like `JtagNoDeviceConnected`, I have found the solution is the following. This assumes your microcontroller is properly hooked up to the ST-Link.
 
-```
-Error: stm32x device protected
-Error: failed erasing sectors 0 to 23
-Error: flash_erase returned -4
-```
-
-This means your blue pill's flash is read-only protected. To unlock it, you can connect to your openocd session with:
-
-```shell
-telnet localhost 4444
-```
-
-... and type the following commands:
-
-```
-reset halt
-stm32f1x unlock 0
-reset halt
-```
+1. Unplug the ST-Link from your computer
+2. Hold down the "Reset" button on your microcontroller
+3. Plug the ST-Link back into your computer while holding the "Reset" button
+4. While continuing to hold the "Reset" button, try `openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg -c "init; reset halt; stm32f1x mass_erase 0; exit"` for real STM chips, or `openocd -f interface/stlink-v2.cfg -f ./cs32f1x.cfg -c "init; reset halt; stm32f1x mass_erase 0; exit"` for clone CS32 boards.)
+5. When openocd is looking for the device, release the "Reset" button
+6. Erasing the device should have succeeded. Try using cargo embed or flash again.
 
 ### MCU in low power state
 
-If the software which was already flashed to the Blue pill has put the processor core into a low power state, then this prevents the hardware debug interface from operating.  In this case, then OpenOCD will create output like this:
-
-```
-Error: jtag status contains invalid mode value - communication failure
-Polling target stm32f1x.cpu failed, trying to reexamine
-Examination failed, GDB will be halted. Polling again in 100ms
-Info : Previous state query failed, trying to reconnect
-```
-
-To workaround this, press the reset button on the blue pill board whilst starting openocd.  If the software that you've flashed to the STM32F103xx is putting it into the low power mode (e.g. by using the `wfi` instruction), then you might want to disable this (e.g. by busy-looping instead) when building the code in development mode instead of release mode.
-
-
-### Cloned chips (Error 0x1ba01477)
-If you are having difficulty with OpenOCD, check that you have a real ST chip. If not, you may have a clone. Try using this as your `openocd.cfg`:
-
-```cfg
-source [find interface/stlink-v2.cfg]
-# For clone cs32f1x chips
-source [find ./cs32f1x.cfg] 
-```
+If the software which was already flashed to the Blue pill has put the processor core into a low power state, then this prevents RTT from working. You might see an error like `jtag status contains invalid mode value - communication failure`. You might need to follow the same instructions shown [here](jtagnodeviceconnected) to erase your device. To work around this, an idle loop is present that prevents the chip from going into a low power state.
 
 ## Sources
 
 This quickstart is inspired by the [cortex-m-quickstart](https://github.com/japaric/cortex-m-quickstart) and [Discovery](https://rust-embedded.github.io/discovery/). I recommend reading them.
+
+Much of this repository has been informed and modified from the original repository by TeXitoi, [Blue Pill Quickstart](https://github.com/TeXitoi/blue-pill-quickstart).

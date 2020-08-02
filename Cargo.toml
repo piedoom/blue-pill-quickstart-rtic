@@ -1,13 +1,19 @@
 [package]
 name = "blue-pill-rtic-quickstart"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["doomy", "Guillaume Pinot <texitoi@texitoi.eu>"]
 edition = "2018"
 
+[profile.release]
+opt-level = 'z'
+lto = true
+
 [dependencies]
-stm32f1xx-hal = { version = "0.6", features = ["rt", "stm32f103" ] }
 cortex-m = "0.6"
 cortex-m-rt = { version = "0.6", features = ["device"] }
-panic-semihosting = "0.5"
 cortex-m-rtic = "0.5"
-cortex-m-semihosting = "0.3"
+rtt-target = { version = "*", features = ["cortex-m"]}
+stm32f1xx-hal = { version = "0.6", features = ["rt", "stm32f103", "medium"] }
+# stm32f1 = {version = "0.11", features = ["stm32f103"]} # Needed in some instances
+
+

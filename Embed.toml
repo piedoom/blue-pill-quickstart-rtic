@@ -1,0 +1,21 @@
+[default.probe]
+protocol = "Swd"
+
+[default.flashing]
+enabled = true
+
+[default.general]
+chip = "stm32f103c8"
+chip_descriptions = []
+
+[default.rtt]
+enabled = true
+# A list of channel associations to be displayed. If left empty, all channels are displayed.
+channels = [
+    # { up = 0, down = 0, name = "name" }
+]
+timeout = 3000
+show_timestamps = true
+
+[default.gdb]
+enabled = false

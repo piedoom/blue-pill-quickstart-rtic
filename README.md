@@ -70,7 +70,7 @@ If you receive an error when flashing that contains a message like `JtagNoDevice
 
 ### MCU in low power state
 
-If the software which was already flashed to the Blue pill has put the processor core into a low power state, then this prevents RTT from working. You might see an error like `jtag status contains invalid mode value - communication failure`. You might need to follow the same instructions shown [here](jtagnodeviceconnected) to erase your device. To work around this, an idle loop is present that prevents the chip from going into a low power state.
+If the software which was already flashed to the Blue pill has put the processor core into a low power state, then this prevents RTT from working. You might see an error like `jtag status contains invalid mode value - communication failure`. You might need to follow the same instructions shown [here](#jtagnodeviceconnected) to erase your device. To work around this, an idle loop is present that prevents the chip from going into a low power state.
 
 ## Sources
 
